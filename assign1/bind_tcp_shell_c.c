@@ -3,7 +3,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
- 
+
+/**
+ * Bind TCP Shell
+ * Student Id: SLAE-1058
+ * Original version from:
+ * 	-> https://www.adampalmer.me/iodigitalsec/2013/04/07/linux-shell-bind-tcp-shellcode/
+ * 
+*/
 int main(void)
 {
         int client_sock, sockfd;

