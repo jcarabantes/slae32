@@ -1,0 +1,26 @@
+#include<stdio.h>
+#include<string.h>
+
+
+#define EGGMARK "\x90\x50\x90\x50"
+
+unsigned char egghunter[] = \
+"\xb8\x72\x80\x04\x08\xbb\x91\x50\x90\x50\x4b\x40\x39\x18\x75\xfb\xff\xe0\x01";
+
+unsigned char shellcode[] = \
+EGGMARK
+"\xeb\x11\x59\x31\xc0\x31\xdb\xb0\x04\xb3\x01\xb2\x0c\xcd\x80\xb0\x01\xcd\x80\xe8\xea\xff\xff\xff\x48\x65\x6c\x6c\x6f\x20\x57\x6f\x72\x6c\x64\x21";
+
+void main()
+{
+
+
+	printf("Egg hunter shellcode Length:  %d\n", strlen(egghunter));
+	printf("Shellcode Length:  %d\n", strlen(shellcode));
+
+	int (*ret)() = (int(*)())egghunter;
+
+	ret();
+
+}
+
