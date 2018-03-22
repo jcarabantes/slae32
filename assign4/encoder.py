@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# wrapper.py
+# encoder.py
 # Author: jcarabantes
 # Student Id: SLAE-1058
 
