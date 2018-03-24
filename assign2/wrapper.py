@@ -13,19 +13,16 @@ import time
 
 # output functions
 def info(m, new_line=None):
-	#print("\033[34m[INFO]\033[0m {0}".format(m))
 	print("\033[1m\033[34m[INFO]\033[0m {0}".format(m))
 	if new_line: print("")
 
 def debug(m, new_line=None):
 	global verbose
 	if verbose: print("\033[1m\033[32m[DEBUG]\033[0m {0}".format(m))
-	#if verbose: print("\033[32m[DEBUG]\033[0m {0}".format(m))
 	if verbose and new_line: print("")
 
 def error(m):
 	print("\033[1m\033[31m[ERROR]\033[0m {0}".format(m))
-	#print("\033[31m[ERROR]\033[0m {0}".format(m))
 	sys.exit(1)
 
 def check_ip_format(ip):
@@ -111,15 +108,12 @@ debug("Checking if IP Address has null bytes")
 debug("Hex IP: {0}".format(ip_b))
 
 
-#~ int_port = sys.argv[2]
 int_port = port
 long_hex_port = struct.pack("<L",int(int_port)).encode('hex')[:4]
 
 new_port = get_hex_port(long_hex_port)
 port_byte_1 = "0x" + new_port[:2] if new_port[:2] != "00" else "dl"
 port_byte_2 = "0x" + new_port[2:4] if new_port[2:4] != "00" else "dl"
-#port_byte_1 = "0x" + new_port[:2]
-#port_byte_2 = "0x" + new_port[2:4]
 
 debug("Long port hex: {0} (null bytes are checked too)".format(new_port))
 debug("Opening template")

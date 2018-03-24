@@ -13,19 +13,16 @@ import time
 
 # output functions
 def info(m, new_line=None):
-	#print("\033[34m[INFO]\033[0m {0}".format(m))
 	print("\033[1m\033[34m[INFO]\033[0m {0}".format(m))
 	if new_line: print("")
 
 def debug(m, new_line=None):
 	global verbose
 	if verbose: print("\033[1m\033[32m[DEBUG]\033[0m {0}".format(m))
-	#if verbose: print("\033[32m[DEBUG]\033[0m {0}".format(m))
 	if verbose and new_line: print("")
 
 def error(m):
 	print("\033[1m\033[31m[ERROR]\033[0m {0}".format(m))
-	#print("\033[31m[ERROR]\033[0m {0}".format(m))
 	sys.exit(1)
 
 def check_ip_format(ip):

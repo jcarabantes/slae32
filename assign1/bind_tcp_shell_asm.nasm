@@ -95,7 +95,7 @@ _start:
 	mov cl, 0x02			; mov 2 to cl (dup 2, 1, 0)
                         
 dup2:                   
-	mov al, 63			; this mov is here cause of the return of 0x80
+	mov al, 63			; this mov is here because of the return of 0x80
 	int 0x80            
 	dec ecx             
 	jns dup2			; jump to dup2 if ecx != -1 (sf == 0)

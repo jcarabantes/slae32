@@ -20,7 +20,7 @@ nextaddr:
 	cmp dword [eax], ebx
 	jne nextaddr
 
-	; execute the shellcode
+	; We found the MARK. Let's execute the shellcode
 	jmp eax
 
 start_addr: db 0x01
